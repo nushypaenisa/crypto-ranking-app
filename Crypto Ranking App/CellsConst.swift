@@ -9,6 +9,6 @@ import Foundation
 
 struct Cells{
     
-    static let cryptoViewCellName: String = "CryptoViewCell"
+    static let newsCellName: String = "NewsCell"
 
 }
