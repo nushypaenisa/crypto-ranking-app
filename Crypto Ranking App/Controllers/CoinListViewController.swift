@@ -20,9 +20,18 @@ class CoinListViewController: UITableViewController {
     private let filterButton = UIButton()
     private var isLoading = false
     var filteredCoins: [Coin] = []
-    private var selectedOrderBy = "name"
+    private var selectedOrderBy = "marketCap"
 
+    
+    var viewModel: CryptoViewModel // Shared ViewModel
 
+     init(viewModel: CryptoViewModel) {
+         self.viewModel = viewModel
+         super.init(nibName: nil, bundle: nil)
+     }
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
      
@@ -39,20 +48,10 @@ class CoinListViewController: UITableViewController {
 
     }
     
-//    func setupTableHeader() {
-//         let segmentControl = UISegmentedControl(items: ["name", "Price", "24h Volume"])
-//         segmentControl.selectedSegmentIndex = 0
-//         segmentControl.addTarget(self, action: #selector(filterChanged(_:)), for: .valueChanged)
-//
-//         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 50))
-//         segmentControl.frame = CGRect(x: 10, y: 10, width: view.frame.width - 20, height: 30)
-//         headerView.addSubview(segmentControl)
-//
-//         tableView.tableHeaderView = headerView
-//     }
+
     
     func setupTableHeader() {
-        let segmentControl = UISegmentedControl(items: ["name", "Price", "24h Volume"])
+        let segmentControl = UISegmentedControl(items: ["marketCap", "Price", "24h Volume"])
         segmentControl.selectedSegmentIndex = 0
         segmentControl.addTarget(self, action: #selector(filterChanged(_:)), for: .valueChanged)
         
@@ -72,7 +71,7 @@ class CoinListViewController: UITableViewController {
      @objc func filterChanged(_ sender: UISegmentedControl) {
          switch sender.selectedSegmentIndex {
          case 0:
-             selectedOrderBy = "name"
+             selectedOrderBy = "marketCap"
          case 1:
              selectedOrderBy = "price"
          case 2:
@@ -121,11 +120,9 @@ class CoinListViewController: UITableViewController {
         // Reuse or create a cell of the appropriate type.
         let cell = tableView.dequeueReusableCell(withIdentifier: "cryptoViewCell",
                               for: indexPath) as! CryptoViewCell
-
         let coin = coins[indexPath.row]
 
         cell.configure(with: coin)
-
 
         return cell
 
@@ -142,24 +139,14 @@ class CoinListViewController: UITableViewController {
         let coin = coins[indexPath.row]
 
         // Check if the coin is already in favorites
-        let isFavorite = favoriteCoins.contains(where: { $0.uuid == coin.uuid })
+        let isFavorite = viewModel.isFavorite(coin)
 
         let actionTitle = isFavorite ? "Unfavorite" : "Favorite"
         let actionColor = isFavorite ? UIColor.red : UIColor.green
 
         let favoriteAction = UIContextualAction(style: .normal, title: actionTitle) { [weak self] _, _, completionHandler in
             guard let self = self else { return }
-
-            if isFavorite {
-                // Remove from favorites
-                self.favoriteCoins.removeAll { $0.uuid == coin.uuid }
-            } else {
-                // Add to favorites
-                self.favoriteCoins.append(coin)
-            }
-
-            // Save favorites to UserDefaults (optional)
-            self.saveFavorites()
+            self.viewModel.toggleFavorite(coin)
 
             completionHandler(true)
         }
@@ -182,16 +169,13 @@ class CoinListViewController: UITableViewController {
     }
 
     func loadFavorites() {
-        print("favoriteCoins 1")
+       
         if let savedData = UserDefaults.standard.data(forKey: "favoriteCoins"),
           
            let decodedCoins = try? JSONDecoder().decode([Coin].self, from: savedData) {
-            print("favoriteCoins 2")
-            print(decodedCoins)
+         
             favoriteCoins = decodedCoins
             
-            print("favoriteCoins")
-            print(favoriteCoins)
         }
     }
 }

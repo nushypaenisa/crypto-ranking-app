@@ -14,17 +14,19 @@ import DGCharts
 
 
 struct ContentView: View {
+    @StateObject private var viewModel = CryptoViewModel()
+
     var body: some View {
         NavigationView {
             
             TabView {
-                CoinListViewWrapper()
+                CoinListViewWrapper(viewModel: viewModel)
 
                     .navigationTitle("Crypto Ranking")
                     .navigationBarHidden(false)
                     .edgesIgnoringSafeArea(.bottom).tabItem { Image(systemName: "house.fill"); Text("Coins").font(.system(size: 30, weight: .bold, design: .rounded))}
                 
-                FavCoinListViewWrapper()
+                FavCoinListViewWrapper(viewModel: viewModel)
 
                     .navigationTitle("Crypto Ranking")
                     .font(.system(size: 30, weight: .bold, design: .rounded))
@@ -42,8 +44,9 @@ struct ContentView_Previews: PreviewProvider {
 }
 
 struct CoinListViewWrapper: UIViewControllerRepresentable {
+    @ObservedObject var viewModel: CryptoViewModel
     func makeUIViewController(context: Context) -> CoinListViewController {
-        return CoinListViewController()
+        return CoinListViewController(viewModel: viewModel)
     }
 
     func updateUIViewController(_ uiViewController: CoinListViewController, context: Context) {
@@ -55,14 +58,15 @@ struct CoinListViewWrapper: UIViewControllerRepresentable {
 
 
 struct FavCoinListViewWrapper: UIViewControllerRepresentable {
-
+    @ObservedObject var viewModel: CryptoViewModel
     
     func makeUIViewController(context: Context) -> FavoriteCoinViewController {
-        return FavoriteCoinViewController()
+        return FavoriteCoinViewController(viewModel: viewModel)
     }
 
     func updateUIViewController(_ uiViewController: FavoriteCoinViewController, context: Context) {
         // No update logic needed for now
+        uiViewController.updateTableView()
     }
 }
 

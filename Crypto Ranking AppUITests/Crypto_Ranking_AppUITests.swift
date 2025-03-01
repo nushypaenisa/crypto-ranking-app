@@ -38,4 +38,40 @@ class Crypto_Ranking_AppUITests: XCTestCase {
             }
         }
     }
+    
+    func testSwipeToFavorite() {
+        let app = XCUIApplication()
+        app.launch()
+        
+        let firstCell = app.tables.cells.element(boundBy: 0)
+        
+        if firstCell.exists {
+            firstCell.swipeLeft()
+            firstCell.buttons["Favorite"].tap()
+            
+            // Verify the favorite action worked
+            let favoritesTab = app.tabBars.buttons["Favorites"]
+            favoritesTab.tap()
+            
+            XCTAssertTrue(app.tables.cells.element(boundBy: 0).exists, "Favorite should be added")
+        }
+    }
+    
+    func testPagination() {
+        let app = XCUIApplication()
+        app.launch()
+        
+        let tableView = app.tables.firstMatch
+        XCTAssertTrue(tableView.exists, "TableView should be present")
+        
+        let firstCell = tableView.cells.element(boundBy: 0)
+        let lastCell = tableView.cells.element(boundBy: 19)
+        
+        XCTAssertTrue(firstCell.exists, "First page should be loaded")
+        
+        tableView.swipeUp()
+        
+        let newCell = tableView.cells.element(boundBy: 20)
+        XCTAssertTrue(newCell.exists, "Next page should load on scroll")
+    }
 }
